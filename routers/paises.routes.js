@@ -1,56 +1,57 @@
 const express = require("express");
-const router = express.Router ();
-const Paises = require('./../Projeto02-Mod03/model/paises');
+const router = express.Router();
+
+const Pais = require('./../models/paises');
 
 router.get('/', (req,res) => {
-    res.status(200).json({message:"rota paises ok"});
+    res.status(200).json({message:"rota pessoas ok"});
 });
 
-
 router.get('/listall', async (req,res) => {
-    await Paises.find({}).then((paises) => { 
+    await Pais.find({}).then((paises) => {
         res.status(200).json(paises);
     }).catch((err) => {
-        res.status(404).json({message:"Nada foi encontrado"});
+        res.status(204).json({message:"Nada foi encontrado"});
         console.error(err);
     });
 });
 
-router.get('/findnome/:nome', async (req,res) => {
-    const nome = req.params.nome;  
+router.get('/listname/:nome', async (req,res) => {
+    const nome = req.params.nome; 
     await Pais.findOne({ nome:nome }).then((pais) => { 
         console.log(pais);
         if(pais == null){ 
-            res.status(404).json({message: "nao foi encontrado"});
+            res.status(404).json({message: "não foi encontrado"});
         }else{
             res.status(200).json(pais);
         }
+
     }).catch((err) => {
         res.status(404).json({message:"Nada foi encontrado"});
         console.error(err);
     });
-});
 
-router.post('/add', async (req,res) => { 
+})
 
-    
+router.post('/add', async (req,res) => {
+    //validando as entradas do usuario
     if(!req.body.nome){
         res.status(400).json({message: "esta faltando nome"});
         return;
-    } if(!req.body.populacao){
-        res.status(400).json({message: "esta faltando a populacao"});
+    }if(!req.body.populacao){
+        res.status(400).json({message: "esta faltando população"});
         return;
     }
-     if(!req.body.idioma){
-        res.status(400).json({message: "esta faltando o Idioma"});
-        return;
+    if(!req.body.linguaMae){
+        res.status(400).json({message: "esta faltando língua mãe"});
+        return; // nao esquecer dos returns dentro dos ifs
     }
-     if(!req.body.pib){
-        res.status(400).json({message: "esta faltando o PIB"});
-        return;
+    if(!req.body.pib){
+        res.status(400).json({message: "esta faltando PIB"});
+        return; // nao esquecer dos returns dentro dos ifs
     }
 
-    await Paises.create(req.body).then(() => {
+    await Pais.create(req.body).then(() => {
         res.status(200).json({message: "cadastrado com sucesso"});
     }).catch((err) => {
         res.status(400).json({message: "algo esta errado"});
@@ -58,7 +59,24 @@ router.post('/add', async (req,res) => {
     })
 });
 
-router.put('/update/:id', async (req,res) => {
+router.get('/listname/:nome', async (req,res) => {
+    const nome = req.params.nome; 
+    await Pais.findOne({ nome:nome }).then((pais) => { 
+        console.log(pais);
+        if(pais == null){ 
+            res.status(404).json({message: "não foi encontrado"});
+        }else{
+            res.status(200).json(pais);
+        }
+
+    }).catch((err) => {
+        res.status(404).json({message:"Nada foi encontrado"});
+        console.error(err);
+    });
+
+});
+
+router.put('/update/:id', async (req, res) => {
     const id = req.params.id;
     if(!id){
         res.status(400).json({message: "esta faltando id na URL"});
@@ -67,19 +85,19 @@ router.put('/update/:id', async (req,res) => {
         res.status(400).json({message: "esta faltando nome"});
         return;
     }else if(!req.body.populacao){
-        res.status(400).json({message: "esta faltando a populacao"});
+        res.status(400).json({message: "esta faltando população"});
         return;
     }
-    else if(!req.body.idioma){
-        res.status(400).json({message: "esta faltando o idioma"});
+    else if(!req.body.linguaMae){
+        res.status(400).json({message: "esta faltando língua mãe"});
         return;
     }
     else if(!req.body.pib){
-        res.status(400).json({message: "esta faltando o pib"});
+        res.status(400).json({message: "esta faltando PIB"});
         return;
     }
 
-    await Pais.updateOne({ _id:id},req.body).then(() => { 
+    await Pais.updateOne({ _id:id},req.body).then(() => { //updateOne atualiza o primeiro que encontrar e der match
         res.status(200).json({message: "Atualizado com sucesso"});
     }).catch((err) => {
         console.error(err);
@@ -87,17 +105,13 @@ router.put('/update/:id', async (req,res) => {
     });
 });
 
-router.delete('/del/:id', async (req,res) => {
-    if( req.params.id.length == 24){ 
-        await Pais.deleteOne({_id:req.params.id}).then(() => { // conferir os caracteres se são mesmo 24 ou se devo colocar outro paramentro
-            res.status(200).json({message: "Deletado com sucesso"});
-        }).catch((err) => {
-            console.error(err);
-            res.status(400).json({message: "algo esta errado"});
-        });
-    }else{
-        res.status(400).json({message: "id precisa ter 24 caracteres"});
-    }
+router.delete('/delete/:id', async (req, res) => {
+    const id = req.params.id;
+         
+    await Pais.findByIdAndDelete(id);
+    
+    res.send({ message: 'País excluído com sucesso' });
 });
+
 
 module.exports = router;
